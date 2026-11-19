@@ -1,0 +1,26 @@
+# Plain static site: vanilla HTML/CSS/JS, no framework, no package.json, no dependencies.
+#
+# The page, stylesheet and script are committed without file extensions
+# ("html", "css", "js") and there is no index.html, so Netlify would 404 at "/"
+# and serve the files as application/octet-stream (browsers refuse to apply the CSS).
+# The build step only copies them into dist/ under conventional names so Netlify
+# serves them with the right Content-Type; the source files are left untouched.
+[build]
+  command = "mkdir -p dist && cp html dist/index.html && cp css dist/style.css && cp js dist/app.js"
+  publish = "dist"
+
+# The page references its assets as href="css" and src="js"; serve the renamed copies there.
+[[redirects]]
+  from = "/css"
+  to = "/style.css"
+  status = 200
+
+[[redirects]]
+  from = "/js"
+  to = "/app.js"
+  status = 200
+
+[[redirects]]
+  from = "/html"
+  to = "/index.html"
+  status = 200
