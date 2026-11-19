@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>QR Shield – QR code safety checker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css">
+  <script>
+    try {
+      document.documentElement.dataset.theme =
+        localStorage.getItem("qrs_theme") ||
+        (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    } catch (e) {}
+  </script>
+</head>
+<body>
+
+  <!-- LOGIN SCREEN -->
+  <section id="login" aria-labelledby="login-title">
+    <div class="topbar">
+      <button class="btn ghost theme-toggle" type="button" aria-label="Toggle dark mode">🌙 Dark</button>
+    </div>
+
+    <div class="login-wrap">
+      <div class="login-card">
+        <span class="shield" aria-hidden="true">🛡</span>
+        <h2 id="login-title">Welcome to QR Shield</h2>
+        <p class="hint" style="margin-bottom:16px">
+          Sign in or create an account to inspect QR codes before you open links or pay.
+        </p>
+
+        <div class="tabs" role="tablist" aria-label="Sign in or register">
+          <button type="button" class="tab" role="tab" id="tab-signin"
+                  aria-selected="true" aria-controls="login-form">Sign in</button>
+          <button type="button" class="tab" role="tab" id="tab-register"
+                  aria-selected="false" aria-controls="register-form">Register</button>
+        </div>
+
+        <p class="msg ok" id="auth-info" role="status"></p>
+
+        <!-- SIGN IN -->
+        <form id="login-form" autocomplete="off">
+          <label for="login-user">Username</label>
+          <input id="login-user" required autocomplete="username">
+
+          <label for="login-pass">Password</label>
+          <input id="login-pass" type="password" data-pw required autocomplete="current-password">
+
+          <label class="show-pw">
+            <input type="checkbox"> Show password
+          </label>
+
+          <p class="msg error" id="login-error" role="alert" style="margin:0 0 10px"></p>
+          <button class="btn primary" type="submit">Sign in</button>
+        </form>
+
+        <!-- REGISTER -->
+        <form id="register-form" autocomplete="off" hidden>
+          <label for="reg-name">Full name</label>
+          <input id="reg-name" required autocomplete="name" maxlength="40">
+
+          <label for="reg-user">Choose a username</label>
+          <input id="reg-user" required autocomplete="username" maxlength="20"
+                 placeholder="letters, numbers, _">
+
+          <label for="reg-pass">Password</label>
+          <input id="reg-pass" type="password" data-pw required autocomplete="new-password"
+                 placeholder="8+ characters, letter + number">
+
+          <div class="meter" aria-hidden="true"><i id="pw-bar"></i></div>
+          <small class="hint" id="pw-hint">Use 8+ characters with a letter and a number.</small>
+
+          <label for="reg-pass2" style="display:block;margin-top:10px">Confirm password</label>
+          <input id="reg-pass2" type="password" data-pw required autocomplete="new-password">
+
+          <label class="show-pw">
+            <input type="checkbox"> Show passwords
+          </label>
+
+          <p class="msg error" id="register-error" role="alert" style="margin:0 0 10px"></p>
+          <button class="btn primary" type="submit">Create account</button>
+        </form>
+
+        <p class="note">
+          Demo only. Accounts are saved in this browser, not on a server. This is not real security.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <div id="app" hidden>
+    <header class="hero">
+      <div class="topbar">
+        <span class="who" id="who"></span>
+        <button class="btn ghost theme-toggle" type="button" aria-label="Toggle dark mode">🌙 Dark</button>
+        <button class="btn ghost" id="logout-btn" type="button">Log out</button>
+      </div>
+
+      <div class="wrap">
+        <div>
+          <div class="brand"><span aria-hidden="true">🛡</span> QR SHIELD</div>
+          <h1>Think before you scan.</h1>
+          <p>Scan, inspect, and assess QR codes before you open links or make payments.</p>
+
+          
+        </div>
+
+        <div class="scanner" aria-hidden="true">
+          <svg viewBox="0 0 100 100">
+            <g fill="#07122b">
+              <path fill-rule="evenodd" d="M0 0h30v30H0zM6 6v18h18V6z"/>
+              <rect x="11" y="11" width="8" height="8"/>
+              <path fill-rule="evenodd" d="M70 0h30v30H70zM76 6v18h18V6z"/>
+              <rect x="81" y="11" width="8" height="8"/>
+              <path fill-rule="evenodd" d="M0 70h30v30H0zM6 76v18h18V76z"/>
+              <rect x="11" y="81" width="8" height="8"/>
+              <rect x="38" y="4" width="8" height="8"/>
+              <rect x="52" y="10" width="8" height="8"/>
+              <rect x="38" y="22" width="14" height="6"/>
+              <rect x="4" y="38" width="8" height="8"/>
+              <rect x="18" y="42" width="14" height="8"/>
+              <rect x="40" y="38" width="10" height="10"/>
+              <rect x="58" y="40" width="8" height="14"/>
+              <rect x="74" y="40" width="20" height="8"/>
+              <rect x="40" y="58" width="8" height="8"/>
+              <rect x="56" y="62" width="14" height="8"/>
+              <rect x="76" y="60" width="8" height="14"/>
+              <rect x="88" y="66" width="8" height="8"/>
+              <rect x="40" y="76" width="12" height="8"/>
+              <rect x="58" y="80" width="8" height="14"/>
+              <rect x="74" y="84" width="14" height="10"/>
+            </g>
+          </svg>
+          <i></i>
+        </div>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <!-- INPUT CARD -->
+      <section class="card" aria-labelledby="input-title">
+        <h2 id="input-title">Scan or enter QR content</h2>
+        <p class="sub">Choose any method below. Nothing opens automatically.</p>
+
+        <div class="inputs">
+          <div class="box">
+            <h3><span class="ico">🖼</span> Upload QR image</h3>
+
+            <label class="drop">
+              <span>Click to choose a QR image</span>
+              <small>JPG or PNG</small>
+              <input type="file" id="file-input" accept="image/png,image/jpeg"
+                     aria-label="Upload QR image">
+            </label>
+          </div>
+
+          <div class="box">
+            <h3><span class="ico">📷</span> Live camera scan</h3>
+
+            <div id="reader" class="reader" aria-live="polite">
+              <span>Camera preview appears here</span>
+            </div>
+
+            <div class="row">
+              <button class="btn primary" id="cam-start">Start camera scan</button>
+              <button class="btn" id="cam-stop" disabled>Stop camera</button>
+            </div>
+
+            <p class="msg" id="cam-msg" role="status"></p>
+          </div>
+
+          <div class="box">
+            <h3><span class="ico">📋</span> Paste decoded text</h3>
+
+            <label for="paste-text" class="sr">Decoded QR content</label>
+            <textarea id="paste-text" rows="4"
+                      placeholder="Paste decoded QR content, e.g. https://example.com"></textarea>
+
+            <div class="row">
+              <button class="btn primary" id="paste-btn">Analyze pasted content</button>
+              <button class="btn" id="paste-clear-btn" type="button">Clear</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- FULL-WIDTH SAMPLE BLOCK -->
+        <div class="box samples-box">
+          <h3><span class="ico">🧪</span> Built-in sample QRs</h3>
+          <p class="hint">Load a predefined decoded string.</p>
+
+          <div class="row">
+            <button class="btn s-safe" data-sample="safe">Safe sample</button>
+            <button class="btn s-susp" data-sample="suspicious">Suspicious sample</button>
+            <button class="btn s-danger" data-sample="dangerous">Dangerous sample</button>
+          </div>
+        </div>
+
+        <p class="msg error" id="input-error" role="alert"></p>
+        <div id="file-reader" hidden></div>
+      </section>
+
+      <!-- RESULT CARD -->
+      <section class="card result" id="result" data-verdict="empty"
+               aria-labelledby="result-title" aria-live="polite">
+        <h2 id="result-title">Safety result</h2>
+        <p class="sub">Every warning is explained in plain language.</p>
+        <div id="result-body"></div>
+      </section>
+
+      <!-- HISTORY CARD -->
+      <section class="card" aria-labelledby="hist-title">
+        <div class="hist-head">
+          <h2 id="hist-title">Session scan history</h2>
+          <button class="btn" id="clear-btn">Clear history</button>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Input method</th>
+                <th>Content type</th>
+                <th>Verdict</th>
+                <th>Score</th>
+                <th>Decoded content</th>
+              </tr>
+            </thead>
+            <tbody id="hist-body"></tbody>
+          </table>
+        </div>
+
+        <p class="empty" id="hist-empty">
+          No scans yet. History is kept in memory and resets on refresh.
+        </p>
+      </section>
+    </main>
+
+    <footer>
+      <div class="wrap">
+        QR Shield provides decision support only. It does not guarantee that a QR code is safe.
+        Never enter a UPI PIN to receive money. Web links may be sent to Google Safe Browsing for a live check.
+      </div>
+    </footer>
+  </div>
+
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <script src="js"></script>
+</body>
+</html>
